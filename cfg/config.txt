@@ -1,0 +1,9 @@
+{
+	'resolution' : [1280,720],
+	'fps' : 120,
+	'hud_color' : (150,200,255),
+	'default_timefactor' : 1.0,
+	'timefactor_mult' : 10.0,
+	'zoom_smoothing' : 0.05,
+	'zoom_speed' : 0.2
+}

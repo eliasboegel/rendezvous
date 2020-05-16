@@ -1,0 +1,26 @@
+{
+	'player' :
+	{'type' : 'player',
+	'pos_init' : [0, -7371.136e3],
+	'vel_init' : [7.380713089e3,0],
+	'mass_dry' : 1000,
+	'mass_prop' : 800,
+	'i_sp' : 330,
+	'img' : 'player.png',
+	'bodyscale' : 0.1},
+
+	'mainbody' :
+	{'type': 'mainbody',
+	'radius' : 6371.136e3,
+	'atm_thickness' : 200e3,
+	'atm_color' : (0,0,255),
+	'mass' : 5.97237e24,
+	'img' : 'earth.png'},
+
+	'target' :
+	{'type' : 2,
+	'pos_init' : [6626.3e3,6626.3e3],
+	'vel_init' : [-4611.6,4611.6],
+	'img' : 'sat1.png',
+	'bodyscale' : 0.15},
+}
