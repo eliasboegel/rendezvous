@@ -7,6 +7,16 @@ Rendezvous is a tiny space game in which you control a spacecraft in orbit aroun
 Controls are as follows:
 
 Left/Right Arrow Keys: Simulation speed decrease/increase
+
 Up/Down Arrow Keys: Thrust direction lock mode switching (Prograde/Retrograde/No lock)
+
 Mouse scrolling and left click: Camera zoom and translation
+
 Spacebar: Toggle Player and Target orbit ellipse display
+
+
+How to run:
+
+1.) Download all files
+
+2.) Run rendezvous.py
