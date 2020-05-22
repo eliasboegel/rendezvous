@@ -20,3 +20,7 @@ How to run:
 1.) Download all files
 
 2.) Run rendezvous.py
+
+
+
+Thanks to https://www.deviantart.com/hameed for providing both Earth and Mars planet textures in very high quality under Creative Commons license!
