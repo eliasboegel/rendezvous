@@ -35,7 +35,52 @@ class MainBody:
 
         # Load image into attribute and convert pixel format for performance improvements
         self.img = pygame.image.load(os.path.join(path)).convert_alpha()
+        
+        
+        
+        # Specify number of layers out of which to draw the atmosphere
+        n_atm_layers = 50
+        atm_radius = self.radius + self.atm_thickness * 2
 
+        atm_radius_px = int(atm_radius / self.radius * self.img.get_rect().size[0] / 2)
+        atm_thickness_px = int(self.atm_thickness * 2 / self.radius * self.img.get_rect().size[0] / 2)
+
+        body_surface = pygame.Surface([atm_radius_px * 2, atm_radius_px * 2], pygame.SRCALPHA)#.convert_alpha()
+
+        # Draw each atmosphere layer
+        for layer in range(n_atm_layers):
+
+            # Set layer radius in pixels, smaller radius for ever layer draw to give effect of different atmosphere layers
+            layer_radius = int(atm_radius_px - atm_thickness_px / (n_atm_layers) * layer)
+
+            # Set layer color, the inner-most layer is always white
+            atm_color = self.atm_color
+            
+            # Grade color from white (innermost layer) to atm_color (at half drawn atmosphere thickness), outer half of the layer are atm_color, but alpha changes
+            if layer > n_atm_layers / 2:
+                red = atm_color[0] + (255 - atm_color[0])/(n_atm_layers/2+1)*(layer - n_atm_layers / 2)
+                green = atm_color[1] + (255 - atm_color[1])/(n_atm_layers/2+1)*(layer - n_atm_layers / 2)
+                blue = atm_color[2] + (255 - atm_color[2])/(n_atm_layers/2+1)*(layer - n_atm_layers / 2)
+            else:
+                red = atm_color[0]
+                green = atm_color[1]
+                blue = atm_color[2]
+                
+            alpha = 10 + (200 - 10)/(n_atm_layers-1)*layer
+            
+            layer_color = (red, green, blue, alpha)
+
+            # Draw atmosphere layer
+            pygame.draw.circle(body_surface, layer_color, [atm_radius_px, atm_radius_px], layer_radius)
+
+
+        # Draw black layer below planet itself to avoid shine-through of the atmosphere if texture of the main body has transparent pixels
+        #pygame.draw.circle(body_surface, (0,0,0), [atm_radius_px, atm_radius_px], atm_radius_px)
+        
+        body_surface.blit(self.img, [atm_thickness_px, atm_thickness_px])
+        
+        self.img = body_surface
+        
     def scale_img(self, scale):
         """Method to scale the original image to the needed zoom level"""
 

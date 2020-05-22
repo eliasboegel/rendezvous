@@ -52,6 +52,9 @@ class Rendezvous:
         # Read resultion from config file
         self.res = cfg['resolution']
         
+        # Read fullscreen mode from config file
+        self.fullscreen = cfg['fullscreen']
+        
         # Read target fps from config file
         self.target_fps = cfg['fps']
         
@@ -63,9 +66,6 @@ class Rendezvous:
 
         # Read simulation time multiplier for simulation speed increase/decrease from config
         self.timefactor_mult = cfg['timefactor_mult']
-
-        # Read zoom smoothing factor for camera zoom in/out from config
-        self.zoom_smoothing = cfg['zoom_smoothing']
 
         # Read zoom speed for camera zoom in/out from config
         self.zoom_speed = cfg['zoom_speed']
@@ -158,7 +158,7 @@ class Rendezvous:
 
                     # Right arrow key, speed up simulation time to a maximum of 10000x real time
                     elif event.key == pygame.K_RIGHT:
-                        if self.timefactor * self.timefactor_mult <= 10000:
+                        if self.timefactor * self.timefactor_mult <= 1000:
                             self.timefactor = self.timefactor * self.timefactor_mult
                             
                     elif event.key == pygame.K_UP:

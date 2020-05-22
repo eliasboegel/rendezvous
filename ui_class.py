@@ -15,11 +15,13 @@ class UI:
         self.game_instance = game_instance
 
         # Initialize the main pygame surface and save reference
-        self.screen = pygame.display.set_mode(self.game_instance.res, pygame.RESIZABLE | pygame.DOUBLEBUF | pygame.HWSURFACE)
+        if self.game_instance.fullscreen:
+            self.screen = pygame.display.set_mode(self.game_instance.res, pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE)
+        else:
+            self.screen = pygame.display.set_mode(self.game_instance.res, pygame.RESIZABLE | pygame.DOUBLEBUF)
 
         # Set default camera scale and target scale
         self.scale = 0.00001
-        self.targetscale = self.scale
 
         # Initialize camera move state
         self.moving = False
@@ -52,42 +54,6 @@ class UI:
 
                 # Draw body only if main body AND its atmosphere are visible on the screen
                 if self.is_on_screen(self.center_to_topleft(self.pos_to_center_coord(body.pos)), [2 * atm_radius * self.scale, 2 * atm_radius * self.scale]):
-
-                    # Specify number of layers out of which to draw the atmosphere
-                    n_atm_layers = 5
-
-                    # Set positon of where the atmosphere layers will be blitted to
-                    blitpos_x = int(self.center_to_topleft(self.pos_to_center_coord(body.pos))[0] - atm_radius*self.scale) + 1
-                    blitpos_y = int(self.center_to_topleft(self.pos_to_center_coord(body.pos))[1] - atm_radius*self.scale) + 1
-
-                    # Draw each atmosphere layer
-                    for layer in range(n_atm_layers):
-
-                        # Set layer radius in pixels, smaller radius for ever layer draw to give effect of different atmosphere layers
-                        layer_radius = int((atm_radius - body.atm_thickness / (n_atm_layers) * layer) * self.scale)
-
-                        # Create surface to draw the current layer on
-                        layer_surface = pygame.Surface([2*atm_radius*self.scale, 2*atm_radius*self.scale], pygame.SRCALPHA)#.convert_alpha()
-
-                        # Set layer color, the inner-most layer is always white
-                        atm_color = body.atm_color
-                        
-                        red = atm_color[0] + (255 - atm_color[0])/(n_atm_layers-1)*layer
-                        green = atm_color[1] + (255 - atm_color[1])/(n_atm_layers-1)*layer
-                        blue = atm_color[2] + (255 - atm_color[2])/(n_atm_layers-1)*layer
-                        
-                        layer_color = (red, green, blue, 255)
-
-                        # Draw atmosphere layer
-                        pygame.draw.circle(layer_surface, layer_color, [int(atm_radius*self.scale), int(atm_radius*self.scale)], layer_radius)
-
-                        # Blit atmosphere layer to the current frame
-                        self.screen.blit(layer_surface, [blitpos_x, blitpos_y])
-
-                    # Draw black layer below planet itself to avoid shine-through of the atmosphere if texture of the main body has transparent pixels
-                    pygame.draw.circle(self.screen, (0,0,0), self.center_to_topleft(self.pos_to_center_coord(body.pos)), int(body.radius * self.scale))
-
-                    # Draw main body texture
                     self.draw_img(body.scaled_img, self.center_to_topleft(self.pos_to_center_coord(body.pos)))
 
 
@@ -209,11 +175,6 @@ class UI:
         self.mouse_pos_old = self.mouse_pos
         self.mouse_pos = pygame.mouse.get_pos()
 
-        # Implement smooth zooming by getting the actual scale closer to the targetet scale in small steps
-        if abs(self.scale - self.targetscale) > self.targetscale * 0.1 : # FIX THIS FOR PERFORMANCE
-            self.scale = self.scale + (self.targetscale - self.scale) * self.game_instance.zoom_smoothing
-            self.update_zooming_imgs()
-
         # Move camera if camera needs to move with mouse pointer
         if self.moving:
             self.move_camera()
@@ -320,8 +281,19 @@ class UI:
     def zoom_camera(self, mode):
         """Method to start the zoom process"""
 
-        # Set the target scale to a new level based on the old target scale and the zoom speed, mode = 1: zoom out, mode = -1: zoom in
-        self.targetscale = self.targetscale * (1 - self.game_instance.zoom_speed * mode)
+        self.scale = self.scale * (1 - self.game_instance.zoom_speed * mode)
+        self.update_zooming_imgs()
+        
+        d_x = - mode * ((self.game_instance.res[0] / 2 - self.mouse_pos[0]) * self.game_instance.zoom_speed / self.scale)
+        d_y = mode * ((self.game_instance.res[1] / 2 - self.mouse_pos[1]) * self.game_instance.zoom_speed / self.scale)
+        
+        # Move bodies to mimic zoom towards mouse position, cannot tell why the factor 10 is needed but it seemed necessary
+        for body in self.game_instance.mission.bodies:
+            body.pos[0] = body.pos[0] + d_x
+            body.pos[1] = body.pos[1] + d_y
+            
+        self.center[0] = self.center[0] + d_x
+        self.center[1] = self.center[1] + d_y
 
 
     def move_camera(self):
@@ -418,30 +390,32 @@ class UI:
                 ellipse_size_y = orbit_params[0][1] * self.scale
                 rot_angle_rad = orbit_params[1]
                 
-                # Draw basic orbit ellipse in horizontal orientation onto surface
-                orbit_bounding_rect = pygame.Rect(0, 0, ellipse_size_x, ellipse_size_y)
-                orbit_surface = pygame.Surface([ellipse_size_x, ellipse_size_y], pygame.SRCALPHA)
-                pygame.draw.ellipse(orbit_surface, self.game_instance.hud_color, orbit_bounding_rect, 1)
-                center_before_rot = orbit_surface.get_rect().center
-                
-                # Center to ellipse focus vector before rotation
-                center_to_focus_vector = pygame.math.Vector2(ellipse_size_x / 2 - orbit_params[2][0] * self.scale, 0)
+                # Draw orbit ellipses only if they aren't bigger than a certain level
+                if ellipse_size_x < self.game_instance.res[1]:
+                    # Draw basic orbit ellipse in horizontal orientation onto surface
+                    orbit_bounding_rect = pygame.Rect(0, 0, ellipse_size_x, ellipse_size_y)
+                    orbit_surface = pygame.Surface([ellipse_size_x, ellipse_size_y], pygame.SRCALPHA).convert_alpha()
+                    pygame.draw.ellipse(orbit_surface, self.game_instance.hud_color, orbit_bounding_rect, 1)
+                    center_before_rot = orbit_surface.get_rect().center
+                    
+                    # Center to ellipse focus vector before rotation
+                    center_to_focus_vector = pygame.math.Vector2(ellipse_size_x / 2 - orbit_params[2][0] * self.scale, 0)
 
-                # Center to ellipse focus vector after rotation
-                rot_center_to_focus_vector = center_to_focus_vector.rotate(math.degrees(rot_angle_rad))
-                
-                # Rotate surface that contains the ellipse
-                rot_orbit_surface = pygame.transform.rotate(orbit_surface, math.degrees(rot_angle_rad))
-                
-                # Set center of new rotated ellipse to center of old ellipse
-                rot_orbit_surface.get_rect().center = center_before_rot
-                
-                # Build blitting coordinates
-                x_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[0] - rot_center_to_focus_vector[0]
-                y_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[1] + rot_center_to_focus_vector[1]
-                
-                # Create new rectangle from rotated orbit ellipse and center it at the position calculated
-                newrect = rot_orbit_surface.get_rect(center = [x_pos, y_pos])
-                
-                self.screen.blit(rot_orbit_surface, newrect)
+                    # Center to ellipse focus vector after rotation
+                    rot_center_to_focus_vector = center_to_focus_vector.rotate(math.degrees(rot_angle_rad))
+                    
+                    # Rotate surface that contains the ellipse
+                    rot_orbit_surface = pygame.transform.rotate(orbit_surface, math.degrees(rot_angle_rad))
+                    
+                    # Set center of new rotated ellipse to center of old ellipse
+                    rot_orbit_surface.get_rect().center = center_before_rot
+                    
+                    # Build blitting coordinates
+                    x_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[0] - rot_center_to_focus_vector[0]
+                    y_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[1] + rot_center_to_focus_vector[1]
+                    
+                    # Create new rectangle from rotated orbit ellipse and center it at the position calculated
+                    newrect = rot_orbit_surface.get_rect(center = [x_pos, y_pos])
+                    
+                    self.screen.blit(rot_orbit_surface, newrect)
                 
