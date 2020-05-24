@@ -206,7 +206,7 @@ class UI:
         """Method to draw all HUD elements besides orbits"""
 
         # Draw an FPS counter in the top right corner of the window
-        self.draw_text(f"{1/self.dt:.0f} FPS", 30, self.game_instance.hud_color, (self.game_instance.res[0] - 10, 10), 'right')
+        #self.draw_text(f"{1/self.dt:.0f} FPS", 30, self.game_instance.hud_color, (self.game_instance.res[0] - 10, 10), 'right')
 
         # Draw the current simulation time factor in the bottom left corner of the window
         self.draw_text(f"x{self.game_instance.timefactor:.0f}", 30, self.game_instance.hud_color, (10, self.game_instance.res[1]-40), 'left')
@@ -420,7 +420,7 @@ class UI:
                         elif body.type == 3:
                             color = (255,0,0)
                         
-                        pygame.draw.ellipse(orbit_surface, color, orbit_bounding_rect, 1)
+                        pygame.draw.ellipse(orbit_surface, color, orbit_bounding_rect, 2)
                         center_before_rot = orbit_surface.get_rect().center
                         
                         # Center to ellipse focus vector before rotation

@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import random
+import os
 from itertools import combinations
 
 import mission_class
@@ -22,9 +23,16 @@ class Rendezvous:
 
         # Read config file
         self.read_config()
+        
+        # Set window icon
+        icon = pygame.image.load(os.path.join('img', 'icon.png'))
+        pygame.display.set_icon(icon)
 
         # Spawn pygame window
         self.ui = ui_class.UI(self)
+        
+        # Set window title
+        pygame.display.set_caption('Rendezvous')
 
         # Read mission from selected mission file
         self.mission =  mission_class.Mission('missions', mission_file)
@@ -80,9 +88,6 @@ class Rendezvous:
 
         # Initialize pygame
         pygame.init()
-
-        # Set window title
-        pygame.display.set_caption('Rendezvous')
 
         # Inititalize main game clock
         clock = pygame.time.Clock()
