@@ -38,6 +38,10 @@ class Rendezvous:
 
         # Set the current mission state to mission ongoing
         self.mission_state = 0
+        
+        # Set collision parameters
+        self.collision_dist = 500e3
+        self.safe_vel = 1000
 
         # Run main game loop
         self.game_loop()
@@ -95,16 +99,27 @@ class Rendezvous:
             # Pass simulation time elapsed since last frame to UI object so that an FPS counter can be drawn
             self.ui.dt = dt_frame
 
+            player_body = None
+            # Find player body for later use
+            for body in self.mission.bodies:
+                if body.type == 1: # Player body type = 1
+                    player_body = body
+                    
+
             # Handle user input
             for event in pygame.event.get():
 
                 # Stay in main loop until pygame.quit event is sent
                 if event.type == pygame.QUIT:
-                    running = False 
+                    running = 0
 
                 # If the viewport is resized, forward this resize to the UI object
                 elif event.type == pygame.VIDEORESIZE:
                     self.ui.resize_screen(event.size)
+                    
+                # If current song ends, start new song
+                elif event.type == (pygame.USEREVENT + 1):
+                    self.ui.play_music()
 
                 # If a mouse button is pressed
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -113,8 +128,10 @@ class Rendezvous:
                         self.ui.moving = 1
                     
                     # RMB, start firing player propulsion system
-                    elif event.button == 3:
-                        self.mission.bodies[0].firing = 1
+                    elif event.button == 3 and player_body is not None:
+                        if player_body.m_prop > 0:
+                            player_body.firing = 1
+                            player_body.prop_sound.play(-1, 0, 500)
 
                     # Scroll wheel scrolled upwards, zoom in camera
                     elif event.button == 4:
@@ -129,23 +146,24 @@ class Rendezvous:
 
                     # LMB, stop moving camera with mouse pointer
                     if event.button == 1:
-                        self.ui.moving = False
+                        self.ui.moving = 0
 
                     # RMB, stop firing player propulsion system
-                    elif event.button == 3:
-                        self.mission.bodies[0].firing = False
+                    elif event.button == 3 and player_body is not None:
+                        player_body.firing = 0
+                        player_body.prop_sound.fadeout(500)
 
                 # If a key on the keyboard is pressed
                 elif event.type == pygame.KEYDOWN:
 
                     # Escape key, end game
                     if event.key == pygame.K_ESCAPE:
-                        running = False
+                        running = 0
                     
                     # Return/Enter key, if mission is over then end game
                     elif event.key == pygame.K_RETURN:
                         if self.mission_state > 0:
-                            running = False
+                            running = 0
                     
                     # Toggle orbit ellipses     
                     elif event.key == pygame.K_SPACE:
@@ -162,18 +180,12 @@ class Rendezvous:
                             self.timefactor = self.timefactor * self.timefactor_mult
                             
                     elif event.key == pygame.K_UP:
-                        for body in self.mission.bodies:
-                            if body.type == 1: # Player body type = 1
-                                if body.angle_lock_mode < 1:
-                                    body.angle_lock_mode += 1
-                                break
+                        if player_body is not None and player_body.angle_lock_mode < 1:
+                            player_body.angle_lock_mode += 1
                             
                     elif event.key == pygame.K_DOWN:
-                        for body in self.mission.bodies:
-                            if body.type == 1: # Player body type = 1
-                                if body.angle_lock_mode > -1:
-                                    body.angle_lock_mode -= 1
-                                break
+                        if player_body is not None and player_body.angle_lock_mode > -1:
+                            player_body.angle_lock_mode -= 1
 
             # If frame rate is below a certain threshold (example: frame drawing stops when window is moved), stop simulation to avoid grossly wrong orbit updates
             if dt / self.timefactor <= 1/20:
@@ -204,11 +216,7 @@ class Rendezvous:
                         body.update_pos(dt)
 
 
-                #Collision check between all bodies
-                
-                collision_dist = 500e3
-                safe_vel = 1000
-                
+                #Collision check between all bodies 
                 for body_combo in combinations(self.mission.bodies, 2):
                     
                     # Check for collisions between certain body types
@@ -238,7 +246,7 @@ class Rendezvous:
                             except ValueError:
                                 pass
                     else:
-                        collision_mode = orbit_functions.collision_check(body_combo[0], body_combo[1], collision_dist, safe_vel)
+                        collision_mode = orbit_functions.collision_check(body_combo[0], body_combo[1], self.collision_dist, self.safe_vel)
                         
                         if collision_mode == 2: # Crash
                             
@@ -275,8 +283,8 @@ class Rendezvous:
                                 debris_scale_1 = body_combo[0].bodyscale * (1 - 1/(debris_spawn_count) * abs(i)) * 0.5
                                 
                                 #Debris orbit variation
-                                debris_pos_0 = [body_combo[0].pos[0] + 1000 * i, body_combo[0].pos[1] + 1000 * i]
-                                debris_pos_1 = [body_combo[1].pos[0] + 1000 * i, body_combo[1].pos[1] + 1000 * i]
+                                debris_pos_0 = [body_combo[0].pos[0] + 5000 * i, body_combo[0].pos[1] + 5000 * i]
+                                debris_pos_1 = [body_combo[1].pos[0] + 5000 * i, body_combo[1].pos[1] + 5000 * i]
                                 debris_vel_0 = [body_combo[0].vel[0] + 100 * i, body_combo[0].vel[1] + 100 * i]
                                 debris_vel_1 = [body_combo[1].vel[0] + 100 * i, body_combo[1].vel[1] + 100 * i]
                                 

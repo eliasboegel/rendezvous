@@ -4,8 +4,9 @@
 	'pos_init' : [4000e3,4000e3],
 	'vel_init' : [-2000,2000],
 	'mass_dry' : 1000,
-	'mass_prop' : 2000,
-	'i_sp' : 330,
+	'mass_prop' : 800,
+	'i_sp' : 600,
+	'thrust' : 100,
 	'img' : 'player.png',
 	'bodyscale' : 0.1},
 
@@ -19,8 +20,8 @@
 
 	'target' :
 	{'type' : 2,
-	'pos_init' : [0, -7371.136e3],
-	'vel_init' : [3000,0],
-	'img' : 'sat1.png',
+	'pos_init' : [-3685.568e3, -6383.596e3],
+	'vel_init' : [1350,-2383.2686],
+	'img' : 'sat2.png',
 	'bodyscale' : 0.1},
 }

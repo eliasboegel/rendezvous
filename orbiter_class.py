@@ -131,7 +131,7 @@ class Orbiter:
         path = os.path.join('img', self.img_path)
 
         # Load image into attribute and convert pixel format for performance improvements
-        self.img = pygame.image.load(os.path.join(path)).convert_alpha()
+        self.img = pygame.image.load(path).convert_alpha()
 
         # Scale image down to specified body scale and save scaled image in attribute
         self.scaled_img = pygame.transform.rotozoom(self.img, random.randint(0, 360), self.bodyscale)
@@ -141,7 +141,7 @@ class Orbiter:
 
 class Player(Orbiter):
 
-    def __init__(self,pos_init, vel_init, mass_dry, mass_prop, i_sp, img_path, bodyscale):
+    def __init__(self,pos_init, vel_init, mass_dry, mass_prop, i_sp, thrust, img_path, bodyscale):
         """Class for the player orbiting body"""
 
         # Set attributes
@@ -158,11 +158,27 @@ class Player(Orbiter):
         self.img_path = img_path
         self.scaled_img = None
         self.bodyscale = bodyscale
-        self.firing = False
-        self.thrust = 424
+        self.firing = 0
+        self.thrust = thrust
+        self.exhaust_img = None
 
         # Load the image from file
         self.load_img()
+        
+        # Load the exhaust image from file
+        self.load_exhaust()
+        
+        # Set engine sound
+        if self.i_sp > 500:
+            soundpath = os.path.join('snd', 'ElectricPropulsion.ogg')
+        else:
+            soundpath = os.path.join('snd', 'ChemicalPropulsion.ogg')
+            
+            
+        self.prop_sound = pygame.mixer.Sound(soundpath)
+        self.prop_sound.set_volume(0.1)
+            
+        
 
     def update_vel(self, dt):
         """Method to update velocity vector to new value based on old velocity vector and acceleration vector, but with added functionality to modify speed through propulsion"""
@@ -170,7 +186,7 @@ class Player(Orbiter):
         self.vel = orbit_functions.get_vel(self.vel, self.acc, dt)
         
         # If propulsion system is firing, add dv vector to velocity
-        if self.firing:
+        if self.firing and self.m_prop > 0:
             self.propell(dt)
 
     def propell(self, dt):
@@ -193,6 +209,10 @@ class Player(Orbiter):
 
         # Reduce propellant mass by propellant mass used in this step in simulation time
         self.m_prop = self.m_prop - dm
+        
+        if not self.m_prop > 0:
+            self.firing = 0
+            self.prop_sound.fadeout(500)
 
         # Change velocity vector by difference in speed caused propulsion, considering the thrust angle
         self.vel[0] = self.vel[0] + math.cos(self.angle) * dv
@@ -209,3 +229,18 @@ class Player(Orbiter):
             self.angle = math.atan2(self.vel[1], self.vel[0]) + math.pi
         
         self.scaled_img = pygame.transform.rotozoom(self.img, math.degrees(self.angle), self.bodyscale)
+        
+        if self.firing:
+            self.scaled_exhaust_img = pygame.transform.rotozoom(self.exhaust_img, math.degrees(self.angle), self.bodyscale)
+        
+    def load_exhaust(self):
+        if self.i_sp > 500:
+            path = os.path.join('img', 'electricexhaust.png')
+        else:
+            path = os.path.join('img', 'chemicalexhaust.png')
+
+        # Scale image down to specified body scale and save scaled image in attribute
+        self.exhaust_img = pygame.image.load(path).convert_alpha()
+        
+        self.scaled_exhaust_img = pygame.transform.rotozoom(self.exhaust_img, math.degrees(self.angle), self.bodyscale)
+        

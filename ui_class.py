@@ -24,7 +24,7 @@ class UI:
         self.scale = 0.00001
 
         # Initialize camera move state
-        self.moving = False
+        self.moving = 0
 
         # Initialize time elapsed since last frame
         self.dt = 0
@@ -37,7 +37,21 @@ class UI:
         self.mouse_pos = [0,0]
         
         # Initialize draw-orbits flag
-        self.draw_orbits_toggle = 0
+        self.draw_orbits_toggle = 1
+        
+        # Create and save background surface
+        self.bg = self.create_background(self.game_instance.res)
+        
+        # Initialize current music track variable
+        self.currtrack = ''
+        
+        # Initialize mixer
+        pygame.mixer.pre_init(44100, -16, 1, 512)
+        pygame.mixer.init()
+        pygame.mixer.music.set_endevent(pygame.USEREVENT + 1)
+        
+        # Start playing music
+        self.play_music()
 
 
     def draw_scene(self):
@@ -59,39 +73,24 @@ class UI:
 
             # Draw orbiting bodies, but only if they are visible on the screen
             elif self.is_on_screen(self.center_to_topleft(self.pos_to_center_coord(body.pos)), body.scaled_img.get_size()):
-
-                # Draw body
-                self.draw_img(body.scaled_img, self.center_to_topleft(self.pos_to_center_coord(body.pos)))
-
-
-    def draw_aimline(self):
-        """Method to draw an aim line showing the thrust direction"""
-
-        # Set color of the aim line based on the current propulsion system state
-        color = (0,0,0)
-        
-        # Draw aimline from player object to mouse pointer
-        for body in self.game_instance.mission.bodies:
-            if body.type == 1:
                 
-                if self.game_instance.mission.bodies[0].firing:
-                    color = (255,0,0) # Red color when firing
-                    thickness = 1
+                if body.type == 1:
+                    
+                    player_pos = self.center_to_topleft(self.pos_to_center_coord(body.pos))
+                    
+                    # Draw exhaust if firing
+                    if body.firing:
+                        exhaust_pos_x = player_pos[0] - math.cos(body.angle) * body.img.get_size()[0] * body.bodyscale
+                        exhaust_pos_y = player_pos[1] + math.sin(body.angle) * body.img.get_size()[1] * body.bodyscale
+                        
+                        self.draw_img(body.scaled_exhaust_img, [exhaust_pos_x, exhaust_pos_y])
+                    
+                    # Draw body
+                    self.draw_img(body.scaled_img, self.center_to_topleft(self.pos_to_center_coord(body.pos)))
+                    
                 else:
-                    color = (255,255,255) # Yellow color when idle
-                    thickness = 1
-                
-                # Set aimline length in pixels
-                line_length = 100
-                
-                # Creating thrust direction unit vector from angle
-                line_dir = [math.cos(body.angle), -math.sin(body.angle)]
-                
-                sc_coord_topleft = self.center_to_topleft(self.pos_to_center_coord(self.game_instance.mission.bodies[0].pos))
-                
-                line_end = [sc_coord_topleft[0] + line_dir[0] * line_length, sc_coord_topleft[1] + line_dir[1] * line_length]
-                
-                pygame.draw.line(self.screen, color, sc_coord_topleft, line_end, thickness)
+                    # Draw body
+                    self.draw_img(body.scaled_img, self.center_to_topleft(self.pos_to_center_coord(body.pos)))
 
 
     def pos_to_center_coord(self, pos):
@@ -151,6 +150,9 @@ class UI:
 
         # Create new main game surface with new resolution
         self.screen = pygame.display.set_mode(newres, pygame.RESIZABLE)
+        
+        # Create and save new background surface that was generated for the new resolution
+        self.bg = self.create_background(self.game_instance.res)
 
 
     def get_mouse_angle(self, sc_body):
@@ -183,8 +185,12 @@ class UI:
     def render(self):
         """Method to render all screen contents"""
 
-        # Clear screen by filling it with black
-        self.screen.fill((0,0,0))
+        # Draw the background texture
+        self.screen.blit(self.bg, [0,0])
+
+        # Draw the orbit ellipses for the player and target objects
+        if self.draw_orbits_toggle:
+            self.draw_orbits()
 
         # Draw the game scene (all bodies)
         self.draw_scene()
@@ -197,16 +203,13 @@ class UI:
 
 
     def draw_hud(self):
-        """Method to draw all HUD elements"""
-
-        # Set main color of the HUD
-        hudcolor = self.game_instance.hud_color
+        """Method to draw all HUD elements besides orbits"""
 
         # Draw an FPS counter in the top right corner of the window
-        self.draw_text(f"{1/self.dt:.0f} FPS", 30, hudcolor, (self.game_instance.res[0] - 10, 10), 'right')
+        self.draw_text(f"{1/self.dt:.0f} FPS", 30, self.game_instance.hud_color, (self.game_instance.res[0] - 10, 10), 'right')
 
         # Draw the current simulation time factor in the bottom left corner of the window
-        self.draw_text(f"x{self.game_instance.timefactor:.0f}", 30, hudcolor, (10, self.game_instance.res[1]-40), 'left')
+        self.draw_text(f"x{self.game_instance.timefactor:.0f}", 30, self.game_instance.hud_color, (10, self.game_instance.res[1]-40), 'left')
 
         # Draw player object related HUD elements only when mission is ongoing
         if self.game_instance.mission_state == 0:
@@ -218,21 +221,26 @@ class UI:
             # Find player object in list of bodies and determine remaining propellant fraction
             prop_fraction = 0
             player_body = None
+            target_body = None
             for body in self.game_instance.mission.bodies:
                 if body.type == 1:
+                    player_body = body
+                    
                     prop_fraction = body.m_prop / body.m_prop_start
                     
                     # Draw thrust direction lock mode
                     if not body.angle_lock_mode: # No lock
-                        self.draw_text("No direction lock", 30, hudcolor, [self.game_instance.res[0] - 10, self.game_instance.res[1] - 40], 'right')
+                        self.draw_text("No direction lock", 30, self.game_instance.hud_color, [self.game_instance.res[0] - 10, self.game_instance.res[1] - 40], 'right')
                     elif body.angle_lock_mode == 1: # Prograde lock
-                        self.draw_text("Prograde lock", 30, hudcolor, [self.game_instance.res[0] - 10, self.game_instance.res[1] - 40], 'right')
+                        self.draw_text("Prograde lock", 30, self.game_instance.hud_color, [self.game_instance.res[0] - 10, self.game_instance.res[1] - 40], 'right')
                     elif body.angle_lock_mode == -1: # Retrograde lock
-                        self.draw_text("Retrograde lock", 30, hudcolor, [self.game_instance.res[0] - 10, self.game_instance.res[1] - 40], 'right')
+                        self.draw_text("Retrograde lock", 30, self.game_instance.hud_color, [self.game_instance.res[0] - 10, self.game_instance.res[1] - 40], 'right')
                 
                 if body.type == 2: # If body is target body
+                    target_body = body
+                    
                     # Draw target icon caption
-                    self.draw_text("Target", 30, hudcolor, [self.game_instance.res[0] / 2, 25], 'center')
+                    self.draw_text("Target", 30, self.game_instance.hud_color, [self.game_instance.res[0] / 2, 25], 'center')
                     
                     # Draw target icon
                     img = pygame.transform.rotozoom(body.img, 0, 0.25)
@@ -242,13 +250,20 @@ class UI:
 
             # Draw propellant bar only when propellant is left
             if prop_fraction > 0:
-                self.draw_text("Propellant left:", 30, hudcolor, (10,10), 'left')
+                self.draw_text("Propellant left:", 30, self.game_instance.hud_color, (10,10), 'left')
 
                 barcolor = (255 - prop_fraction * 255, prop_fraction * 255, 0)
                 pygame.draw.line(self.screen, barcolor, (10,55), (10 + 220 * prop_fraction, 55), 30)
 
-            # Draw thrust aimline
-            #self.draw_aimline()
+            # Draw differential velocity between player and target
+            player_target_dist = ((player_body.pos[0] - target_body.pos[0])**2 + (player_body.pos[1] - target_body.pos[1])**2)**0.5
+            if player_target_dist < self.game_instance.collision_dist * 10:
+                player_target_diff_vel = ((player_body.vel[0] - target_body.vel[0])**2 + (player_body.vel[1] - target_body.vel[1])**2)**0.5
+                
+                if player_target_diff_vel <= self.game_instance.safe_vel:
+                    self.draw_text(f"\u0394V to target  {player_target_diff_vel:.0f} m/s", 30, (0,255,0), (10,100), 'left')
+                else:
+                    self.draw_text(f"\u0394V to target {player_target_diff_vel:.0f} m/s", 30, (255,0,0), (10,100), 'left')
             
         # If mission has ended, draw endscreen instead of player object HUD
         else:
@@ -259,7 +274,7 @@ class UI:
         """Method to draw text on the screen"""
         
         # Set font to be used to the system default font
-        font = pygame.freetype.SysFont(None, size, bold=False, italic=False)
+        font = pygame.freetype.SysFont(None, size, bold=0, italic=0)
 
         # Consider left, center and right text alignment
         if align == 'center':
@@ -375,47 +390,107 @@ class UI:
 
     def draw_orbits(self):
 
-        main_body = None
+        if self.game_instance.mission_state == 0:
 
-        for body in self.game_instance.mission.bodies:
-            if body.type == -1:
-                main_body = body
-                break
+            main_body = None
 
-        for body in self.game_instance.mission.bodies:
-            if body.type == 1 or body.type == 2:
-                orbit_params = orbit_functions.orbit_params(self.game_instance.gravparam, main_body.pos, body.pos, body.vel)
+            for body in self.game_instance.mission.bodies:
+                if body.type == -1:
+                    main_body = body
+                    break
 
-                ellipse_size_x = orbit_params[0][0] * self.scale
-                ellipse_size_y = orbit_params[0][1] * self.scale
-                rot_angle_rad = orbit_params[1]
-                
-                # Draw orbit ellipses only if they aren't bigger than a certain level
-                if ellipse_size_x < self.game_instance.res[1]:
-                    # Draw basic orbit ellipse in horizontal orientation onto surface
-                    orbit_bounding_rect = pygame.Rect(0, 0, ellipse_size_x, ellipse_size_y)
-                    orbit_surface = pygame.Surface([ellipse_size_x, ellipse_size_y], pygame.SRCALPHA).convert_alpha()
-                    pygame.draw.ellipse(orbit_surface, self.game_instance.hud_color, orbit_bounding_rect, 1)
-                    center_before_rot = orbit_surface.get_rect().center
-                    
-                    # Center to ellipse focus vector before rotation
-                    center_to_focus_vector = pygame.math.Vector2(ellipse_size_x / 2 - orbit_params[2][0] * self.scale, 0)
+            for body in self.game_instance.mission.bodies:
+                if body.type == 1 or body.type == 2 or body.type == 3:
+                    orbit_params = orbit_functions.orbit_params(self.game_instance.gravparam, main_body.pos, body.pos, body.vel)
 
-                    # Center to ellipse focus vector after rotation
-                    rot_center_to_focus_vector = center_to_focus_vector.rotate(math.degrees(rot_angle_rad))
+                    ellipse_size_x = orbit_params[0][0] * self.scale
+                    ellipse_size_y = orbit_params[0][1] * self.scale
+                    rot_angle_rad = orbit_params[1]
                     
-                    # Rotate surface that contains the ellipse
-                    rot_orbit_surface = pygame.transform.rotate(orbit_surface, math.degrees(rot_angle_rad))
-                    
-                    # Set center of new rotated ellipse to center of old ellipse
-                    rot_orbit_surface.get_rect().center = center_before_rot
-                    
-                    # Build blitting coordinates
-                    x_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[0] - rot_center_to_focus_vector[0]
-                    y_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[1] + rot_center_to_focus_vector[1]
-                    
-                    # Create new rectangle from rotated orbit ellipse and center it at the position calculated
-                    newrect = rot_orbit_surface.get_rect(center = [x_pos, y_pos])
-                    
-                    self.screen.blit(rot_orbit_surface, newrect)
-                
+                    # Draw orbit ellipses only if they aren't bigger than a certain level
+                    if ellipse_size_x < self.game_instance.res[1]:
+                        # Draw basic orbit ellipse in horizontal orientation onto surface
+                        orbit_bounding_rect = pygame.Rect(0, 0, ellipse_size_x, ellipse_size_y)
+                        orbit_surface = pygame.Surface([ellipse_size_x, ellipse_size_y], pygame.SRCALPHA).convert_alpha()
+                        
+                        if body.type == 1:
+                            color = self.game_instance.hud_color
+                        elif body.type == 2:
+                            color = (0,255,0)
+                        elif body.type == 3:
+                            color = (255,0,0)
+                        
+                        pygame.draw.ellipse(orbit_surface, color, orbit_bounding_rect, 1)
+                        center_before_rot = orbit_surface.get_rect().center
+                        
+                        # Center to ellipse focus vector before rotation
+                        center_to_focus_vector = pygame.math.Vector2(ellipse_size_x / 2 - orbit_params[2][0] * self.scale, 0)
+
+                        # Center to ellipse focus vector after rotation
+                        rot_center_to_focus_vector = center_to_focus_vector.rotate(math.degrees(rot_angle_rad))
+                        
+                        # Rotate surface that contains the ellipse
+                        rot_orbit_surface = pygame.transform.rotate(orbit_surface, math.degrees(rot_angle_rad))
+                        
+                        # Set center of new rotated ellipse to center of old ellipse
+                        rot_orbit_surface.get_rect().center = center_before_rot
+                        
+                        # Build blitting coordinates
+                        x_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[0] - rot_center_to_focus_vector[0]
+                        y_pos = self.center_to_topleft(self.pos_to_center_coord(self.center))[1] + rot_center_to_focus_vector[1]
+                        
+                        # Create new rectangle from rotated orbit ellipse and center it at the position calculated
+                        newrect = rot_orbit_surface.get_rect(center = [x_pos, y_pos])
+                        
+                        self.screen.blit(rot_orbit_surface, newrect)
+    
+    def create_background(self, res):
+        bg_surf = pygame.Surface(res)
+        bg_px_arr = pygame.PixelArray(bg_surf)
+        bg_surf.fill((0,0,0))
+        
+        for bgstars in range(1000):
+            x = random.randint(0,res[0]-1)
+            y = random.randint(0,res[1]-1)
+            
+            bg_px_arr[x,y] = (255,255,255)
+        
+        
+        # Draw larger, colored stars
+        for fgstars in range(100):
+            color_index = random.randint(0,255)
+            
+            b = color_index
+            if b > 200:
+                r = int(b * 0.75)
+                g = random.randint(int(0.75*b),b)
+            else:
+                r = 255-b
+                g = random.randint(0,int(0.75*r))
+            
+            
+            
+            x = random.randint(0,res[0]-1)
+            y = random.randint(0,res[1]-1)
+            
+            radius = random.randint(1,5) // 2
+            
+            pygame.draw.circle(bg_surf, (r,g,b), (x,y), radius)
+        
+        return bg_surf
+    
+    
+    def play_music(self): 
+        tracklist = os.listdir('music')
+        
+        newtrack = random.choice(tracklist)
+        while newtrack == self.currtrack:
+            newtrack = random.choice(tracklist)
+        
+        self.currtrack = newtrack
+        
+        trackpath = os.path.join('music', newtrack)
+        
+        pygame.mixer.music.load(trackpath)
+        pygame.mixer.music.play()
+        pygame.mixer.music.set_volume(0.05)

@@ -25,6 +25,7 @@ class Mission:
                                                             o_data['mass_dry'],
                                                             o_data['mass_prop'],
                                                             o_data['i_sp'],
+                                                            o_data['thrust'],
                                                             o_data['img'],
                                                             o_data['bodyscale']))
 

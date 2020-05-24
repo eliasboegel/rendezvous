@@ -6,6 +6,7 @@
 	'mass_dry' : 1000,
 	'mass_prop' : 800,
 	'i_sp' : 330,
+	'thrust' : 400,
 	'img' : 'player.png',
 	'bodyscale' : 0.1},
 
