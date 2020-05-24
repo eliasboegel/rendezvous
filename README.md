@@ -23,4 +23,8 @@ How to run:
 
 
 
-Thanks to https://www.deviantart.com/hameed for providing both Earth and Mars planet textures in very high quality under the Creative Commons license!
+Dependencies:
+python 3
+pygame
+
+Thanks to https://www.deviantart.com/hameed for providing both Earth and Mars planet textures in very high quality under the Creative Commons license! Background music by NASA.
