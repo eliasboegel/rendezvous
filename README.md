@@ -1,7 +1,7 @@
 # rendezvous
 A small space game!
 
-Rendezvous is a tiny space game in which you control a spacecraft in orbit around a planet. The goal of the game is to use your limited propellant to rendezvous with a target object which is also in orbit around the planet. To achieve this, you have to alter your orbit to meet the target, dodge potential hazards and watch your differential speed to the target.
+Rendezvous is a tiny space game in which you control a spacecraft in orbit around a planet. The goal of the game is to use your limited propellant to rendezvous with a target object which is also in orbit around the planet. To achieve this, you have to alter your orbit to meet the target, dodge potential hazards and watch your differential speed to the target. It also features has some basic random planet and mission generation!
 
 
 Controls are as follows:\
@@ -18,7 +18,8 @@ How to run:\
 
 Dependencies:\
 Python 3\
-pygame
+pygame\
+noise https://pypi.org/project/noise/
 
 
-Thanks to https://www.deviantart.com/hameed for providing both Earth and Mars planet textures in very high quality under the Creative Commons license! Background music by NASA.
+Background music by NASA.
