@@ -9,7 +9,12 @@ import orbit_functions
 class UI:
 
     def __init__(self, game_instance):
-        """User interface class constructor"""
+        """
+        User interface class constructor
+        
+        Arguments:
+            game_instance : Rendezvous Instance - The instance of the Rendezvous game, used to be able to refer to other class attributes and the body list
+        """
 
         # Save reference to main game object for access to the mission body list
         self.game_instance = game_instance
@@ -48,14 +53,17 @@ class UI:
         # Initialize mixer
         pygame.mixer.pre_init(44100, -16, 1, 512)
         pygame.mixer.init()
+        
+        # Set event code so that a music track ending can be received as message in the Rendezvous class
         pygame.mixer.music.set_endevent(pygame.USEREVENT + 1)
         
         # Start playing music
         self.play_music()
 
-
     def draw_scene(self):
-        """Method to draw the 2D game scene (only bodies, not HUD!)"""
+        """
+        Method to draw the 2D game scene (only bodies, not HUD!)
+        """
 
         # Loop through all bodies in order to draw each one
         for body in self.game_instance.mission.bodies:
@@ -92,9 +100,17 @@ class UI:
                     # Draw body
                     self.draw_img(body.scaled_img, self.center_to_topleft(self.pos_to_center_coord(body.pos)))
 
-
     def pos_to_center_coord(self, pos):
-        """Method to scale the values of the position to a coordinate on the screen"""
+        """
+        Method to scale the values of the position to a coordinate on the screen
+        
+        Arguments:
+            pos : [float, float] - Position vector of orbiter
+            
+        Return values:
+            coord : [int, int] - Pixel coordinates on the screen with reference to the center of the screen
+        """
+        
         # Declare coord (coordinates of the object on the screen) to be a list of two items (x- and y-coordinates)
         coord = [0,0] 
 
@@ -105,9 +121,14 @@ class UI:
         # Return position in pixels with reference to the center of the screen
         return coord
     
-
     def draw_img(self, img, pos):
-        """Method to draw an image onto the screen"""
+        """
+        Method to draw an image onto the screen
+        
+        Arguments:
+            img : pygame.Surface - Image to be drawn on the screen
+            pos : [int, int] - Coordinates of where the vcenter of the image should be drawn on screen (with top-left corner reference)
+        """
 
         # Get image bounding rectangle, centered at the position on the screen (in top-left reference)
         img_rect = img.get_rect(center=pos)
@@ -115,9 +136,10 @@ class UI:
         # Draw image on the screen
         self.screen.blit(img, img_rect)
 
-
     def update_zooming_imgs(self):
-        """Method to update the image scale of all bodies whose images need to scale up or down when zooming the camera"""
+        """
+        Method to update the image scale of all bodies whose images need to scale up or down when zooming the camera
+        """
 
         # Find the main body in the list of bodies
         for body in self.game_instance.mission.bodies:
@@ -127,9 +149,16 @@ class UI:
                     body.scale_img(self.scale)
                     break
 
-
     def center_to_topleft(self, center_coord):
-        """Method to translate coordinates centered in the middle of the screen to usual coordinates with top-left reference point"""
+        """
+        Method to translate coordinates centered in the middle of the screen to usual coordinates with top-left reference point
+        
+        Arguments:
+            center_coord : [int, int] - Screen coordinates with reference at the center of the screen
+            
+        Return values:
+            topleft_coord : [int, int] - Screen coordinates with reference at the top-left corner
+        """
         
         # Declare the coordinates with top-left reference to be a list of two items (x- and y-coordinate)
         topleft_coord = [0,0]
@@ -141,9 +170,13 @@ class UI:
         # Return coordinates with a top-left reference
         return topleft_coord
 
-
     def resize_screen(self, newres):
-        """Method to update the resolution, called from resize event"""
+        """
+        Method to update the resolution, called from resize event
+        
+        Arugments:
+            newres : [int, int] - New resolution of the screen
+        """
 
         # Save new resolution
         self.game_instance.res = newres
@@ -154,9 +187,16 @@ class UI:
         # Create and save new background surface that was generated for the new resolution
         self.bg = self.create_background(self.game_instance.res)
 
-
     def get_mouse_angle(self, sc_body):
-        """Method to determine the angle that the mouse pointer makes to the positive x-axis at the position of the player object"""
+        """
+        Method to determine the angle that the mouse pointer makes to the positive x-axis at the position of the player object
+        
+        Arguments:
+            sc_body : Orbiter instance - Instance of an Orbiter, more specifically the player
+            
+        Return values:
+            angle : float - Angle of the mouse pointer relative to the orbiter, measured in rad from positive x-axis
+        """
 
         # Get on screen location of the player object in pixels with a top-left reference
         x_sc = self.center_to_topleft(self.pos_to_center_coord(sc_body.pos))[0]
@@ -169,9 +209,10 @@ class UI:
         # Determine and return the angle, taking quadrants into account (-pi < angle < pi)
         return math.atan2(y_rel, x_rel)
 
-
     def frame_routine(self):
-        """Method to handle all frame-by-frame operations not related to rendering the screen contents"""
+        """
+        Method to handle all frame-by-frame operations not related to rendering the screen contents
+        """
 
         # Update mouse position attributes
         self.mouse_pos_old = self.mouse_pos
@@ -181,9 +222,10 @@ class UI:
         if self.moving:
             self.move_camera()
 
-
     def render(self):
-        """Method to render all screen contents"""
+        """
+        Method to render all screen contents
+        """
 
         # Draw the background texture
         self.screen.blit(self.bg, [0,0])
@@ -201,9 +243,10 @@ class UI:
         # Update window contents to draw changes
         pygame.display.update()
 
-
     def draw_hud(self):
-        """Method to draw all HUD elements besides orbits"""
+        """
+        Method to draw all HUD elements besides orbits
+        """
 
         # Draw an FPS counter in the top right corner of the window
         #self.draw_text(f"{1/self.dt:.0f} FPS", 30, self.game_instance.hud_color, (self.game_instance.res[0] - 10, 10), 'right')
@@ -213,10 +256,6 @@ class UI:
 
         # Draw player object related HUD elements only when mission is ongoing
         if self.game_instance.mission_state == 0:
-
-            # Draw the orbit ellipses for the player and target objects
-            if self.draw_orbits_toggle:
-                self.draw_orbits()
 
             # Find player object in list of bodies and determine remaining propellant fraction
             prop_fraction = 0
@@ -269,9 +308,15 @@ class UI:
         else:
             self.draw_endscreen()
 
-
     def draw_text(self, text, size, color, coord, align):
-        """Method to draw text on the screen"""
+        """
+        Method to draw text on the screen
+        
+        Arguments:
+            text : string - The string to be printed on the screen
+            size : int - The font size of the text [pt]
+            color : [int, int, int] - The color of the text in rgb format, possible values for each color channel: 0-255
+        """
         
         # Set font to be used to the system default font
         font = pygame.freetype.SysFont(None, size, bold=0, italic=0)
@@ -292,27 +337,35 @@ class UI:
         # Blit text to the screen
         self.screen.blit(textobj, rect)
     
-
     def zoom_camera(self, mode):
-        """Method to start the zoom process"""
+        """
+        Method to start the zoom process
+        
+        Arguments:
+            mode : int - The zoom mode, -1 (zooming in), 1 (zooming out)
+        """
 
+        # Update scale and body images that scale with zooming
         self.scale = self.scale * (1 - self.game_instance.zoom_speed * mode)
         self.update_zooming_imgs()
         
+        # Keep mouse pointer at one specific point in space when zooming, gives the impression that the mouse pointer is the location to which the camera zooms
         d_x = - mode * ((self.game_instance.res[0] / 2 - self.mouse_pos[0]) * self.game_instance.zoom_speed / self.scale)
         d_y = mode * ((self.game_instance.res[1] / 2 - self.mouse_pos[1]) * self.game_instance.zoom_speed / self.scale)
         
-        # Move bodies to mimic zoom towards mouse position, cannot tell why the factor 10 is needed but it seemed necessary
+        # Update all body positions to reflect above effect
         for body in self.game_instance.mission.bodies:
             body.pos[0] = body.pos[0] + d_x
             body.pos[1] = body.pos[1] + d_y
             
+        # Update center attributes
         self.center[0] = self.center[0] + d_x
         self.center[1] = self.center[1] + d_y
 
-
     def move_camera(self):
-        """Method to move the camera, however actually all bodies are moves giving the effect of a moving camera"""
+        """
+        Method to move the camera, however actually all bodies are moves giving the effect of a moving camera
+        """
 
         # Determine the difference in mouse position since last frame
         d_x = self.mouse_pos[0] - self.mouse_pos_old[0]
@@ -327,9 +380,10 @@ class UI:
         self.center[0] = self.center[0] + d_x / self.scale
         self.center[1] = self.center[1] + d_y / self.scale
 
-
     def is_on_screen(self, body_center_topleft, body_img_size):
-        """Method to determine whether or not an object is visible on screen"""
+        """
+        Method to determine whether or not an object is visible on screen
+        """
 
         # Determine bounds of the objects image with top-left reference
         l_bound = body_center_topleft[0] - body_img_size[0] / 2
@@ -341,14 +395,13 @@ class UI:
         in_screen_x = (0 <= r_bound <= self.game_instance.res[0]) or (0 <= l_bound <= self.game_instance.res[0]) or (l_bound <= 0 and r_bound >= self.game_instance.res[0])
         in_screen_y = (0 <= b_bound <= self.game_instance.res[1]) or (0 <= t_bound <= self.game_instance.res[1]) or (t_bound <= 0 and b_bound >= self.game_instance.res[1])
         
-        
-        
         # Return true if any part of the object is visible on the screen, false if not   
         return in_screen_x and in_screen_y
 
-
     def draw_endscreen(self):
-        """Method to draw the end screen once mission is over"""
+        """
+        Method to draw the end screen once mission is over
+        """
 
         # If the mission is successful, show text that the mission was successful
         if self.game_instance.mission_state == 1:
@@ -383,26 +436,31 @@ class UI:
                 self.draw_text('The target has been hit by debris.', 20, (255,255,255), [self.game_instance.res[0] / 2, 160], 'center')
                 
             
-
         # Show text that ENTER key now quits the game
         self.draw_text('Press ENTER to quit.', 30, (255,255,255), [self.game_instance.res[0] / 2, self.game_instance.res[1] / 2 - 15], 'center')
 
-
     def draw_orbits(self):
+        """
+        Method to draw the orbit ellipses for player, target and hazards
+        """
 
+        # Draw endscreen only if mission has ended
         if self.game_instance.mission_state == 0:
 
+            # Find reference to main body
             main_body = None
-
             for body in self.game_instance.mission.bodies:
                 if body.type == -1:
                     main_body = body
                     break
 
+            # Draw ellipses for player, target or hazard type orbiters
             for body in self.game_instance.mission.bodies:
                 if body.type == 1 or body.type == 2 or body.type == 3:
+                    # Calculate orbit parameters needed for ellipse display
                     orbit_params = orbit_functions.orbit_params(self.game_instance.gravparam, main_body.pos, body.pos, body.vel)
 
+                    # Find orbit ellipse on-screen size and angle
                     ellipse_size_x = orbit_params[0][0] * self.scale
                     ellipse_size_y = orbit_params[0][1] * self.scale
                     rot_angle_rad = orbit_params[1]
@@ -413,6 +471,7 @@ class UI:
                         orbit_bounding_rect = pygame.Rect(0, 0, ellipse_size_x, ellipse_size_y)
                         orbit_surface = pygame.Surface([ellipse_size_x, ellipse_size_y], pygame.SRCALPHA).convert_alpha()
                         
+                        # Set ellipse colors, if player use HUD color, if target use green and if hazard use red
                         if body.type == 1:
                             color = self.game_instance.hud_color
                         elif body.type == 2:
@@ -420,6 +479,7 @@ class UI:
                         elif body.type == 3:
                             color = (255,0,0)
                         
+                        # Draw ellipse and position it correctly
                         pygame.draw.ellipse(orbit_surface, color, orbit_bounding_rect, 2)
                         center_before_rot = orbit_surface.get_rect().center
                         
@@ -442,13 +502,26 @@ class UI:
                         # Create new rectangle from rotated orbit ellipse and center it at the position calculated
                         newrect = rot_orbit_surface.get_rect(center = [x_pos, y_pos])
                         
+                        # Blit ellipse to screen
                         self.screen.blit(rot_orbit_surface, newrect)
     
     def create_background(self, res):
+        """
+        Method to create a simple, random background
+        
+        Arguments:
+            res : [int, int] - Current screen resolution
+            
+        Return values:
+            bg_surf : pygame.Surface - The generated background image
+        """
+        
+        # Create black surface to draw on
         bg_surf = pygame.Surface(res)
         bg_px_arr = pygame.PixelArray(bg_surf)
         bg_surf.fill((0,0,0))
         
+        # Generate white background stars (by coloring single, random pixels)
         for bgstars in range(1000):
             x = random.randint(0,res[0]-1)
             y = random.randint(0,res[1]-1)
@@ -460,6 +533,7 @@ class UI:
         for fgstars in range(100):
             color_index = random.randint(0,255)
             
+            # Determine random color, but just blue-ish and red-ish tints
             b = color_index
             if b > 200:
                 r = int(b * 0.75)
@@ -468,29 +542,37 @@ class UI:
                 r = 255-b
                 g = random.randint(0,int(0.75*r))
             
-            
-            
+            # Select random screen coordinates to draw star at
             x = random.randint(0,res[0]-1)
             y = random.randint(0,res[1]-1)
             
+            # Set star radius
             radius = random.randint(1,5) // 2
             
+            # Draw star
             pygame.draw.circle(bg_surf, (r,g,b), (x,y), radius)
         
         return bg_surf
-    
-    
+      
     def play_music(self): 
+        """
+        Method to play music and implement shuffling
+        """
+        
+        # Get list of all files in music subfolder
         tracklist = os.listdir('music')
         
+        # Select random track from folder, but not currently playing track
         newtrack = random.choice(tracklist)
         while newtrack == self.currtrack:
             newtrack = random.choice(tracklist)
         
         self.currtrack = newtrack
         
+        # Build path to sound file
         trackpath = os.path.join('music', newtrack)
         
+        # Play music file
         pygame.mixer.music.load(trackpath)
         pygame.mixer.music.play()
         pygame.mixer.music.set_volume(0.05)

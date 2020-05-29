@@ -15,8 +15,7 @@
 	'radius' : 3389.5e3,
 	'atm_thickness' : 100e3,
 	'atm_color' : (255,140,0),
-	'mass' : 0.64171e24,
-	'img' : 'mars.png'},
+	'mass' : 0.64171e24},
 
 	'target' :
 	{'type' : 2,

@@ -14,9 +14,7 @@
 	{'type': 'mainbody',
 	'radius' : 6371.136e3,
 	'atm_thickness' : 200e3,
-	'atm_color' : (0,0,255),
-	'mass' : 5.97237e24,
-	'img' : 'earth.png'},
+	'mass' : 5.97237e24},
 
 	'target' :
 	{'type' : 2,

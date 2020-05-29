@@ -16,7 +16,12 @@ import orbit_functions
 class Rendezvous:
 
     def __init__(self, mission_file):
-        """Main game class constructor"""
+        """
+        Main game class constructor
+        
+        Arugments:
+            mission_file : string - File name of the mission file to load OR 'r' in case player wants to generate a random mission
+        """
 
         # Set gravitational constant
         self.grav_const = 6.6743015e-11
@@ -56,7 +61,9 @@ class Rendezvous:
 
 
     def read_config(self):
-        """Method to read several attributes from config file"""
+        """
+        Method to read several attributes from config file
+        """
 
         # Read config file into a config dictionary
         cfg = io_functions.read_file('cfg', 'config.txt')
@@ -84,7 +91,9 @@ class Rendezvous:
 
 
     def game_loop(self):
-        """Main loop of the game; Updates simulation of all bodies, draws every frame and handles user input"""
+        """
+        Main loop of the game; Updates simulation of all bodies, draws every frame and handles user input
+        """
 
         # Initialize pygame
         pygame.init()
@@ -183,11 +192,13 @@ class Rendezvous:
                     elif event.key == pygame.K_RIGHT:
                         if self.timefactor * self.timefactor_mult <= 1000:
                             self.timefactor = self.timefactor * self.timefactor_mult
-                            
+
+                    # Up arrow key, switch lock mode up
                     elif event.key == pygame.K_UP:
                         if player_body is not None and player_body.angle_lock_mode < 1:
                             player_body.angle_lock_mode += 1
-                            
+                    
+                    # Down arrow key, switch lock mode down
                     elif event.key == pygame.K_DOWN:
                         if player_body is not None and player_body.angle_lock_mode > -1:
                             player_body.angle_lock_mode -= 1
@@ -278,7 +289,7 @@ class Rendezvous:
                                     self.mission_state = 7
                             
                             
-                            debris_spawn_count = 7 # Only exact for odd numbers!
+                            debris_spawn_count = 7 # Number of debris objects to spawn on crash. Only exact for odd numbers!
                             debris_spawn_range = debris_spawn_count // 2
                             
                             
@@ -299,6 +310,8 @@ class Rendezvous:
                             try: # Delete both original bodies if they haven't been removed by another collision
                                 self.mission.bodies.remove(body_combo[0])
                                 self.mission.bodies.remove(body_combo[1])
+                                
+                            # Catching potential errors, I was not able to weed out all errors and the only unexpected error that occurs is a value error, so ValueErrors are passed
                             except ValueError:
                                 pass
                           
@@ -307,7 +320,7 @@ class Rendezvous:
                                 (body_combo[1].type == 1 and body_combo[0].type == 2)):
                                 self.mission_state = 1 # Mission successful
                         
-
+            # Call to function that handles several non-rendering tasks that have to be executed every frame
             self.ui.frame_routine()
 
             # Render screen
