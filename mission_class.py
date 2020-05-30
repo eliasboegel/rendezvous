@@ -168,7 +168,7 @@ class Mission:
         if random.random() < 0.75:
             # Chemical propulsion
             # Set a fuel mass taking into account the dry mass and pericenter altitudes of player and target
-            pl_mass_fuel = pl_mass_dry * (0.5 + tg_r_init / pl_r_init)
+            pl_mass_fuel = pl_mass_dry * (0.5 + 2 * tg_r_init / pl_r_init)
             
             # Randomize specific impulse between 200s and 450s
             pl_i_sp = 200 + random.random() * 250
@@ -179,7 +179,7 @@ class Mission:
         else:
             # Electric propulsion
             # Set a fuel mass taking into account the dry mass and pericenter altitudes of player and target
-            pl_mass_fuel = pl_mass_dry * (0.2 + 0.4 * tg_r_init / pl_r_init)
+            pl_mass_fuel = pl_mass_dry * (0.2 + 0.5 * tg_r_init / pl_r_init)
             
             # Randomize specific impulse between 1000s and 2000s
             pl_i_sp = 1000 + random.random() * 1000

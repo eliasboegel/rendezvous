@@ -47,7 +47,7 @@ class MainBody:
         """
 
         # Determine image scaling factor needed to represent radius accurately with current camera scale
-        bodyscale = 2 * self.radius * scale / self.img.get_size()[0]
+        bodyscale = 2 * (self.radius + 2 * self.atm_thickness) * scale / self.img.get_size()[0]
 
         # Scale original image and save scaled image in attribute
         self.scaled_img = pygame.transform.rotozoom(self.img, 0, bodyscale)

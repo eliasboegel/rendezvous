@@ -239,7 +239,7 @@ class Rendezvous:
                     if not (body_combo[0].type or body_combo[1].type): # Do not consider debris-debris collisions, debris type value is 0, not(A or B) yields 1 only if A and B are False
                         continue
                     elif body_combo[0].type == -1: # If first body in combo is main body
-                        collision_mode = orbit_functions.collision_check(body_combo[0], body_combo[1], body_combo[0].radius + body_combo[0].atm_thickness, 0)
+                        collision_mode = orbit_functions.collision_check(body_combo[0], body_combo[1], body_combo[0].radius + body_combo[0].atm_thickness * 1.5, 0)
                         if collision_mode > 0:
                             if body_combo[1].type == 1: # If second body is the player, set mission to failed by deorbit
                                 #Update mission state, but only if mission is still ongoing
@@ -251,7 +251,7 @@ class Rendezvous:
                             except ValueError:
                                 pass
                     elif body_combo[1].type == -1: # If second body in combo is main body
-                        collision_mode = orbit_functions.collision_check(body_combo[1], body_combo[0], body_combo[1].radius + body_combo[1].atm_thickness, 0)
+                        collision_mode = orbit_functions.collision_check(body_combo[1], body_combo[0], body_combo[1].radius + body_combo[1].atm_thickness * 1.5, 0)
                         if collision_mode > 0:
                             if body_combo[0].type == 1: # If first body is the player, set mission to failed by deorbit
                                 #Update mission state, but only if mission is still ongoing
