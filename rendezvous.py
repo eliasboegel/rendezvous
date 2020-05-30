@@ -1,6 +1,5 @@
 import os
 from rendezvous_class import Rendezvous
-import worldgen
 
 # Read available missions from 'missions' subfolder
 missions_available = os.listdir('missions')
