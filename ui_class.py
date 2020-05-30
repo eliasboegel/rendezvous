@@ -5,6 +5,7 @@ import random
 
 import orbiter_class
 import orbit_functions
+import worldgen
 
 class UI:
 
@@ -59,6 +60,9 @@ class UI:
         
         # Start playing music
         self.play_music()
+        
+        # Draw splash/loading screen
+        self.draw_splashscreen()
 
     def draw_scene(self):
         """
@@ -576,3 +580,24 @@ class UI:
         pygame.mixer.music.load(trackpath)
         pygame.mixer.music.play()
         pygame.mixer.music.set_volume(0.05)
+        
+    def draw_splashscreen(self):
+        """
+        Method to draw a splash/loading screen to let the user know that the game is loading and hasn't crashed
+        """
+        
+        # Build path to splashscreen
+        path = os.path.join('img', 'splashscreen.png')
+        
+        # Load splashscreen image and scale it to current resolution
+        splashscreen = pygame.image.load(path)
+        splashscreen_scaled = pygame.transform.scale(splashscreen, self.game_instance.res)
+        
+        # Color the splash screen with the hud color
+        splashscreen_scaled.fill(self.game_instance.hud_color, special_flags=pygame.BLEND_MULT)
+        
+        # Show splashscreen on screen
+        self.screen.blit(splashscreen_scaled, [0,0])
+    
+        # Update screen
+        pygame.display.update()
