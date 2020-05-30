@@ -141,7 +141,7 @@ class Mission:
         # Generate initial conditions for player until intial position that is at least 1000km from the target is found
         while dt < 1000e3:
             # Set player body pericenter radius to one atmosphere above the end of the planet's atmosphere
-            pl_r_init = mb_radius + 2 * mb_atm_thickness
+            pl_r_init = mb_radius + 3 * mb_atm_thickness
             
             # Calculate velocity needed for a circular orbit
             pl_v_init = (gm/pl_r_init)**0.5
