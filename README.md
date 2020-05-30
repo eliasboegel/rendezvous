@@ -19,7 +19,7 @@ How to run:\
 Dependencies:\
 Python 3\
 pygame\
-noise https://pypi.org/project/noise/
+noise https://pypi.org/project/noise/ (If build via pypi fails, binaries can be acquired from https://www.lfd.uci.edu/~gohlke/pythonlibs/#noise)
 
 
 Background music by NASA.
