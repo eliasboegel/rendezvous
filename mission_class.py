@@ -24,8 +24,8 @@ class Mission:
         # If the user selected a randomly generated mission, generate mission
         # If the user selected a premade mission, load that mission
         if mission_file == 'r':
-            # Ask for number of hazards to spawn and generate a random mission based on that
-            hazards = int(input('How many hazards would like to play with/against? '))
+            # Randomize number of hazards
+            hazards = random.randint(0,5)
             self.generate_mission(hazards)
         else:
             # Read mission file into a dictionary
