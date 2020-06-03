@@ -2,6 +2,8 @@ import pygame, pygame.freetype
 import os
 import math
 import random
+import noise
+import numpy
 
 import orbiter_class
 import orbit_functions
@@ -524,6 +526,72 @@ class UI:
         bg_surf = pygame.Surface(res)
         bg_px_arr = pygame.PixelArray(bg_surf)
         bg_surf.fill((0,0,0))
+        
+        
+        # Generate nebulae
+        nebula_color_base = [random.randint(16, 64), random.randint(16, 64), random.randint(16, 64)]
+        
+        bg_surf_arr = pygame.PixelArray(bg_surf)
+
+        # Create arrays of with the same number of entries as there are pixels on the screen
+        nebula_mask = numpy.empty(res[0] * res[1])
+        nebula_color = numpy.empty(res[0] * res[1])
+        nebula_lightness = numpy.empty(res[0] * res[1])
+        
+        # Set random seeds for noise function
+        maskseed = random.random()
+        colorseed = random.random()
+        lightnessseed = random.random()
+        
+        # Loop through all pixels of the background to fill noise arrays
+        px_index = 0
+        for i in range(res[0]):
+            for j in range(res[1]):
+                
+                # Set noise coordinates to normalized pixel coordinates
+                x_noise = (i * 4) / res[0]
+                y_noise = (j * 4) / res[1]
+                
+                # Generate noise values for pixel
+                nebula_mask[px_index] = noise.pnoise3(x_noise/1.5, y_noise/1.5, maskseed, 6)
+                nebula_color[px_index] = noise.pnoise3(x_noise/30, y_noise/30, colorseed)
+                nebula_lightness[px_index] = noise.pnoise3(x_noise/20, y_noise/20, lightnessseed)
+                
+                px_index += 1
+                
+        # Normalize noise values between 0 and 1
+        nebula_mask = (nebula_mask - nebula_mask.min()) / (nebula_mask.max() - nebula_mask.min())
+        nebula_color = (nebula_color - nebula_color.min()) / (nebula_color.max() - nebula_color.min())
+        nebula_lightness = (nebula_lightness - nebula_lightness.min()) / (nebula_lightness.max() - nebula_lightness.min())
+        nebula_mask = nebula_mask**2
+        
+        # Loop through all pixels again for color processing
+        px_index = 0
+        for i in range(res[0]):
+            for j in range(res[1]):
+                
+                newcolor = pygame.Color(0,0,0)
+                h, s, l, a = newcolor.hsla
+                
+                h = nebula_color[px_index] * 360
+                s = 50
+                l = nebula_lightness[px_index] * nebula_mask[px_index] * 40
+                
+                newcolor.hsla = h, s, l, a
+                
+                bg_surf_arr[i, j] = newcolor
+                
+                px_index += 1
+                    
+            
+        
+        
+        
+        
+        
+        
+        
+        
         
         # Generate white background stars (by coloring single, random pixels)
         for bgstars in range(1000):
