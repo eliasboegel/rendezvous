@@ -39,8 +39,8 @@ def gen_planet(planet_res, planet_radius, planet_atm_thickness, roughness):
     
     # Set step sized for elevation, temperature and humidity map; is a measure of how accurate and how smooth the color gradients will be
     n_elevation_steps = 25
-    n_temperature_steps = 10
-    n_humidity_steps = 5
+    n_temperature_steps = 8
+    n_humidity_steps = 3
     
     # Generate either earth-like planet with earth-like color scheme, or a randomly colored planet, may look like Mars or a gas planet, both options have 50% probability
     # Earth-like planet
