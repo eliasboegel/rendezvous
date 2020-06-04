@@ -8,7 +8,7 @@ import random
 
 class Mission:
 
-    def __init__(self, mission_folder, mission_file):
+    def __init__(self, mission_folder, mission_file, planet_res):
         """
         Mission class constructor
         
@@ -17,6 +17,7 @@ class Mission:
             mission_file : string - The name of the mission file in the mission folder
         """
         
+        self.planet_res = planet_res
 
         # Initialize a list of all bodies
         self.bodies = []
@@ -49,7 +50,8 @@ class Mission:
                 elif o_data['type'] == 'mainbody':
                     self.bodies.append(  orbiter_class.MainBody(o_data['mass'],
                                                                 o_data['radius'],
-                                                                o_data['atm_thickness']))
+                                                                o_data['atm_thickness'],
+                                                                self.planet_res))
 
                 # If body is of another type such as 'debris' or 'hazard', create new orbiter object and append list of bodies
                 else:
@@ -96,7 +98,8 @@ class Mission:
         # Spawn main body based on mass, radius and atmosphere thickness
         self.bodies.append(  orbiter_class.MainBody(mb_mass,
                                                     mb_radius,
-                                                    mb_atm_thickness))
+                                                    mb_atm_thickness,
+                                                    self.planet_res))
                             
                             
                         

@@ -10,7 +10,7 @@ import worldgen
 
 class MainBody:
 
-    def __init__(self, mass, radius, atm_thickness):
+    def __init__(self, mass, radius, atm_thickness, planet_res):
         """
         Main body class constructor
         
@@ -32,7 +32,7 @@ class MainBody:
         self.atm_thickness = atm_thickness
         
         # Generate planet texture
-        self.img = worldgen.gen_planet(1000, self.radius, self.atm_thickness, 6)
+        self.img = worldgen.gen_planet(planet_res, self.radius, self.atm_thickness, random.randint(4,8))
         self.scaled_img = None
         
         # Set velocity to 0

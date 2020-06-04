@@ -40,7 +40,7 @@ class Rendezvous:
         pygame.display.set_caption('Rendezvous')
 
         # Read mission from selected mission file
-        self.mission =  mission_class.Mission('missions', mission_file)
+        self.mission =  mission_class.Mission('missions', mission_file, self.planet_res)
 
         # Find main body in list of bodies and calculate the gravitational parameter from it
         for body in self.mission.bodies:
@@ -88,6 +88,12 @@ class Rendezvous:
 
         # Read zoom speed for camera zoom in/out from config
         self.zoom_speed = cfg['zoom_speed']
+        
+        # Read desired planet resolution
+        self.planet_res = cfg['planet_res']
+        
+        # Read whether or not nebulae should be generated for the background
+        self.generate_nebulae = cfg['generate_nebulae']
 
 
     def game_loop(self):
