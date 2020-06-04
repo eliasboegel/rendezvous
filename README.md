@@ -13,35 +13,35 @@ The visuals and sound effect of the propulsion system depends on the specific im
 # Configuration
 The game has a config file with some limited options:
 resolution : [width,height] The desired resolution at which the game is run, this has to be smaller or equal to your screen resolution, otherwise the game will not run
-fullscreen : 0 = Window mode, 1 = Fullscreen mode
-fps : Target frame rate, the higher the framerate, the better the simulation quality
-hud_color' : [r,g,b] The color of the HUD in RGB format
-default_timefactor : The simulation speed that the game starts with
-timefactor_mult' : The multiplier with which the simulation speed is modified using the controls
-zoom_speed : A setting of how fast the camera zooms in and out
-planet_res : Resolution of the planet texture, low values significantly reduce loading time but also significantly reduce visual quality, 500 should be a good balance between loading time and quality and 1000 has great quality with acceptable load times
-generate_nebulae : Flag of whether or not nebulae should be randomly generated for the background. Disabling this gives a faster load time with reduced visual fidelity. 0 = don't generate nebulae; 1 = generate nebulae
+- fullscreen : 0 = Window mode, 1 = Fullscreen mode
+- fps : Target frame rate, the higher the framerate, the better the simulation quality
+- hud_color' : [r,g,b] The color of the HUD in RGB format
+- default_timefactor : The simulation speed that the game starts with
+- timefactor_mult' : The multiplier with which the simulation speed is modified using the controls
+- zoom_speed : A setting of how fast the camera zooms in and out
+- planet_res : Resolution of the planet texture, low values significantly reduce loading time but also significantly reduce visual quality, 500 should be a good balance between loading time and quality and 1000 has great quality with acceptable load times
+- generate_nebulae : Flag of whether or not nebulae should be randomly generated for the background. Disabling this gives a faster load time with reduced visual fidelity. 0 = don't generate nebulae; 1 = generate nebulae
 
 # Missions
 The game can run either predefined missions, each in their individual file in the subfolder 'missions' (4 preset missions are provided as examples) or a completely random mission scenario can be generated. Which option the player would like to chose is determined when running the game. The player can either enter the name of one of the missions in the 'mission' subfolder, or enter 'r' to generate a randomized mission scenario. The mission files that the preset missions are defined in follow the syntax of python dictionaries (see example missions).
 
 # Controls
-Left mouse button: Drag around the camera while holding LMB
-Scroll wheel: Zoom the camera in and out
-Right mouse button: Fire spacecraft thrusters
-Escape: Quits the game
-Up/Down arrows: Switches between direction lock modes:
+- Left mouse button: Drag around the camera while holding LMB
+- Scroll wheel: Zoom the camera in and out
+- Right mouse button: Fire spacecraft thrusters
+- Escape: Quits the game
+- Up/Down arrows: Switches between direction lock modes:
 		Prograde lock: Thrust accelerates in current flight path direction
 		No lock: Thrust accelerates spacecraft towards current mouse position
 		Retrograde lock: Thrust decelerates the spacecraft in current flight path direction
-Left/Right arrows: Increase or decrease simulation time scale: 1 = real time. The higher the number, the faster the simulation time. (Increased simulation time yields less accurate numerical integration results, however a maximum simulation time scale of 1000x has been set to prevent gross inaccuracies.
+- Left/Right arrows: Increase or decrease simulation time scale: 1 = real time. The higher the number, the faster the simulation time. (Increased simulation time yields less accurate numerical integration results, however a maximum simulation time scale of 1000x has been set to prevent gross inaccuracies.
 
 # Dependencies
-Python 3.x
-Pygame
-SciPy (for n-dimensional (here: 3D) linear interpolation, used for color gradient space)
-NumPy (for arrays)
-noise (for planet texture / nebulae generation)
+- Python 3.x
+- Pygame
+- SciPy (for n-dimensional (here: 3D) linear interpolation, used for color gradient space)
+- NumPy (for arrays)
+- noise (for planet texture / nebulae generation)
 	- https://pypi.org/project/noise/
 	- If build fails (happens on windows occasionally due to VSC++ dependencies missing, binaries can be acquired from https://www.lfd.uci.edu/~gohlke/pythonlibs/#noise and installed via pip
 
