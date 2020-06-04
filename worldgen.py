@@ -71,8 +71,9 @@ def gen_planet(planet_res, planet_radius, planet_atm_thickness, roughness):
         # Vary water and atmosphere color slightly from base color
         bcolor = pygame.Color(base_color[0], base_color[1], base_color[2])
         h, s, l, a = bcolor.hsla
-        h_water = h + 15
-        h_atm = h - 15
+        h = 10
+        h_water = (h + 15) % 360
+        h_atm = (h + 30) % 360
         
         # Set water color
         bcolor.hsla = h_water, s, l, a
