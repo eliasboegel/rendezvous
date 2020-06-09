@@ -22,6 +22,7 @@ try:
         
         if text_with_extension in missions_available:
             selection = text
+            break
         else:
             print('Selected mission not available, please try again.')
     
